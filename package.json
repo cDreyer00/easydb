@@ -1,23 +1,29 @@
 {
-  "name": "files-as-db",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cDreyer00/files-as-db.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/cDreyer00/files-as-db/issues"
-  },
-  "homepage": "https://github.com/cDreyer00/files-as-db#readme",
-  "dependencies": {
-    "dotenv": "^16.0.3"
-  }
+    "name": "files-as-db",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "build": "npx tsc",
+        "start": "node ./build/index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cDreyer00/files-as-db.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/cDreyer00/files-as-db/issues"
+    },
+    "homepage": "https://github.com/cDreyer00/files-as-db#readme",
+    "dependencies": {
+        "@types/node": "^18.15.11",
+        "cdreyer-utilities": "^1.0.0",
+        "dotenv": "^16.0.3"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.2"
+    }
 }
