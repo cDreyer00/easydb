@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { databaseConfig, tableConfig, item, databasesEntryConfig, createOrEditConfig, getConfig } from './configsHandlers';
 
-const DATABASES_FOLDER_ENTRY = path.join(__dirname, 'databases');
+const DATABASES_ENTRY_PATH = path.join(__dirname, 'databases');
 
-export default class database implements IDatabase {
+export default class database {
     name: string;
     tables: string[];
 
@@ -16,19 +17,18 @@ export default class database implements IDatabase {
      */
     constructor(name: string, tables: string[] = []) {
         this.name = name;
-        this._databasePath = path.join(DATABASES_FOLDER_ENTRY, name);
+        this._databasePath = path.join(DATABASES_ENTRY_PATH, name);
         this.tables = tables;
 
-        if (!fs.existsSync(DATABASES_FOLDER_ENTRY)) {
-            fs.mkdirSync(DATABASES_FOLDER_ENTRY);
-        }
+        this._databasesEntryCheck();
 
         try {
-            this._createDatabase();
-        } catch (err) {
-            throw err;
+            this._databaseCheck();
+            console.log('database instance created');
+        } catch (e) {
+            console.log('database instance located');
         }
-        
+
         this.tables.forEach(async (table) => {
             try {
                 await this.createTable(table);
@@ -36,18 +36,45 @@ export default class database implements IDatabase {
                 throw err;
             }
         })
-
-        console.log('database created ✅');
     }
 
-    async _createDatabase() {
-        if (fs.existsSync(this._databasePath)) return;
-        
+    _databasesEntryCheck() {
         try {
-            fs.mkdirSync(this._databasePath);
+            if (!fs.existsSync(DATABASES_ENTRY_PATH)) {
+                fs.mkdirSync(DATABASES_ENTRY_PATH);
+            }
 
+            let config = getConfig(DATABASES_ENTRY_PATH, 'entry') as databasesEntryConfig;
+            if (!config) config = { databases: [], type: 'entry' };
+            //check if database in config databases already exists
+            if (!config.databases.includes(this.name)) config.databases.push(this.name);
+
+            createOrEditConfig(DATABASES_ENTRY_PATH, config)
+        } catch (err) {
+            throw err;
         }
-        catch (err) {
+    }
+
+    _databaseCheck() {
+        try {
+            if (!fs.existsSync(this._databasePath)) {
+                fs.mkdirSync(this._databasePath);
+            }
+
+            let config = getConfig(this._databasePath, 'database') as databaseConfig;
+            if (!config) config = { name: this.name, tables: [], type: 'database' };
+
+            this.tables.map((t) => {
+                if (!config.tables.includes(t)){
+                    config.tables.push(t);
+                }
+            })
+
+            console.log(config);
+
+            createOrEditConfig(this._databasePath, config);
+        } catch (err) {
+            console.log(err);
             throw err;
         }
     }
@@ -55,12 +82,8 @@ export default class database implements IDatabase {
     async createTable(tableName: string) {
         return new Promise((resolve, reject) => {
             try {
-                // check if table does not exists already
                 const tablePath = path.join(this._databasePath, tableName);
-                if (!fs.existsSync(tablePath)) {
-                    fs.mkdirSync(tablePath);
-                }
-
+                fs.mkdirSync(tablePath, { recursive: true });
                 resolve("Table created successfully");
             } catch (err) {
                 reject(err);
@@ -84,12 +107,3 @@ export default class database implements IDatabase {
         })
     }
 }
-
-type item = {
-    [key: string]: any;
-} 
-
-interface IDatabase {
-    name: string;
-    tables: string[];
-}1
