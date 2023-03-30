@@ -19,7 +19,6 @@ export type tableConfig = {
 }
 
 export type item = {
-    id: number;
     [key: string]: any;
 }
 
@@ -28,7 +27,7 @@ type configs = databaseConfig | tableConfig | item | databasesEntryConfig;
 
 export function getConfig(dirPath: string, type: types): configs | undefined {
     const configPath = path.join(dirPath, 'config.json');
-    if(!fs.existsSync(configPath)) return undefined;
+    if (!fs.existsSync(configPath)) return undefined;
 
     try {
         const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
@@ -43,8 +42,6 @@ export function getConfig(dirPath: string, type: types): configs | undefined {
 export function createOrEditConfig(dirPath: string, config: configs): void {
     try {
         const configPath = path.join(dirPath, 'config.json');
-        console.log(`check if ${dirPath} exists`)
-        console.log(fs.existsSync(dirPath));
 
         // if already exists, delete it
         if (fs.existsSync(configPath)) {
@@ -53,7 +50,6 @@ export function createOrEditConfig(dirPath: string, config: configs): void {
 
         const configData = JSON.stringify(config);
         fs.writeFileSync(configPath, configData);
-        console.log(`✅ Config created successfully at ${configPath}`);
     }
     catch (err) {
         throw err;

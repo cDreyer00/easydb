@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getAllDatabases = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const configsHandlers_1 = require("./configsHandlers");
-const DATABASES_ENTRY_PATH = path_1.default.join(__dirname, 'databases');
+const DATABASES_ENTRY_PATH = path_1.default.join(process.cwd(), 'databases');
 class database {
     /**
      * Creates a new database
@@ -23,18 +24,11 @@ class database {
      * @param tables Tables to be created in the database
      */
     constructor(name, tables = []) {
-        this._lastId = 0;
         this.name = name;
         this._databasePath = path_1.default.join(DATABASES_ENTRY_PATH, name);
         this.tables = tables;
         this._databasesEntryCheck();
-        try {
-            this._databaseCheck();
-            console.log('database instance created');
-        }
-        catch (e) {
-            console.log('database instance located');
-        }
+        this._databaseCheck();
         this.tables.forEach((table) => __awaiter(this, void 0, void 0, function* () {
             try {
                 yield this.createTable(table);
@@ -52,7 +46,6 @@ class database {
             let config = (0, configsHandlers_1.getConfig)(DATABASES_ENTRY_PATH, 'entry');
             if (!config)
                 config = { databases: [], type: 'entry' };
-            //check if database in config databases already exists
             if (!config.databases.includes(this.name))
                 config.databases.push(this.name);
             (0, configsHandlers_1.createOrEditConfig)(DATABASES_ENTRY_PATH, config);
@@ -74,7 +67,7 @@ class database {
                     config.tables.push(t);
                 }
             });
-            console.log(config);
+            this.tables = config.tables;
             (0, configsHandlers_1.createOrEditConfig)(this._databasePath, config);
         }
         catch (err) {
@@ -87,8 +80,13 @@ class database {
             return new Promise((resolve, reject) => {
                 try {
                     const tablePath = path_1.default.join(this._databasePath, tableName);
-                    fs_1.default.mkdirSync(tablePath, { recursive: true });
-                    resolve("Table created successfully");
+                    if (!fs_1.default.existsSync(tablePath))
+                        fs_1.default.mkdirSync(tablePath);
+                    let config = (0, configsHandlers_1.getConfig)(tablePath, 'table');
+                    if (!config)
+                        config = { name: tableName, lastElementId: 0, type: 'table' };
+                    (0, configsHandlers_1.createOrEditConfig)(tablePath, config);
+                    resolve();
                 }
                 catch (err) {
                     reject(err);
@@ -98,12 +96,14 @@ class database {
     }
     insert(table, item) {
         return __awaiter(this, void 0, void 0, function* () {
-            item.id = this._lastId++;
             return new Promise((resolve, reject) => {
                 try {
                     const tablePath = path_1.default.join(this._databasePath, table);
                     const itemPath = path_1.default.join(tablePath, `${item.id}.json`);
+                    const tableConfig = (0, configsHandlers_1.getConfig)(tablePath, 'table');
+                    item.id = tableConfig.lastElementId++;
                     fs_1.default.writeFileSync(itemPath, JSON.stringify(item));
+                    (0, configsHandlers_1.createOrEditConfig)(tablePath, tableConfig);
                     resolve(item);
                 }
                 catch (err) {
@@ -114,3 +114,6 @@ class database {
     }
 }
 exports.default = database;
+function getAllDatabases() {
+}
+exports.getAllDatabases = getAllDatabases;

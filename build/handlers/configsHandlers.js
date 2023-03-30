@@ -24,15 +24,12 @@ exports.getConfig = getConfig;
 function createOrEditConfig(dirPath, config) {
     try {
         const configPath = path_1.default.join(dirPath, 'config.json');
-        console.log(`check if ${dirPath} exists`);
-        console.log(fs_1.default.existsSync(dirPath));
         // if already exists, delete it
         if (fs_1.default.existsSync(configPath)) {
             fs_1.default.unlinkSync(configPath);
         }
         const configData = JSON.stringify(config);
         fs_1.default.writeFileSync(configPath, configData);
-        console.log(`✅ Config created successfully at ${configPath}`);
     }
     catch (err) {
         throw err;
