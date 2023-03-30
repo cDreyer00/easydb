@@ -4,7 +4,7 @@ import { databaseConfig, tableConfig, item, databasesEntryConfig, createOrEditCo
 
 const DATABASES_ENTRY_PATH = path.join(process.cwd(), 'databases');
 
-export default class database {
+export default class Database<T> {
     name: string;
     tables: string[];
 
@@ -19,7 +19,7 @@ export default class database {
         this.name = name;
         this._databasePath = path.join(DATABASES_ENTRY_PATH, name);
         this.tables = tables;
-        
+
         this._databasesEntryCheck();
         this._databaseCheck();
         this.tables.forEach(async (table) => {
@@ -73,8 +73,8 @@ export default class database {
         return new Promise((resolve, reject) => {
             try {
                 const tablePath = path.join(this._databasePath, tableName);
-                
-                if(!fs.existsSync(tablePath))
+
+                if (!fs.existsSync(tablePath))
                     fs.mkdirSync(tablePath);
 
                 let config = getConfig(tablePath, 'table') as tableConfig;
@@ -94,7 +94,7 @@ export default class database {
                 const tablePath = path.join(this._databasePath, table);
                 const tableConfig = getConfig(tablePath, 'table') as tableConfig;
 
-                if(!tableConfig) throw new Error('Table does not exist');
+                if (!tableConfig) throw new Error('Table does not exist');
 
                 item.id = tableConfig.lastElementId++;
 
@@ -108,8 +108,27 @@ export default class database {
             }
         })
     }
-}
 
-export function getAllDatabases() {
+    async get(table: string, ids: number[]): Promise<T[]> {
+        return new Promise((resolve, reject) => {
+            try {
+                const tablePath = path.join(this._databasePath, table);
+                const filesNames = fs.readdirSync(tablePath, 'utf-8');
 
+                const datas: T[] = [];
+                filesNames.map(fn => {
+                    if (fn != 'config.json') {
+                        const data = JSON.parse(fs.readFileSync(`${tablePath}/${fn}`, 'utf-8')) as T; 
+                        datas.push(data)
+                    }
+                })
+
+
+
+                resolve(datas as T[]);
+            } catch (err) {
+                reject(err);
+            }
+        })
+    }
 }

@@ -12,12 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllDatabases = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const configsHandlers_1 = require("./configsHandlers");
 const DATABASES_ENTRY_PATH = path_1.default.join(process.cwd(), 'databases');
-class database {
+class Database {
     /**
      * Creates a new database
      * @param name Name of the database
@@ -114,8 +113,26 @@ class database {
             });
         });
     }
+    get(table, ids) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                try {
+                    const tablePath = path_1.default.join(this._databasePath, table);
+                    const filesNames = fs_1.default.readdirSync(tablePath, 'utf-8');
+                    const datas = [];
+                    filesNames.map(fn => {
+                        if (fn != 'config.json') {
+                            const data = JSON.parse(fs_1.default.readFileSync(`${tablePath}/${fn}`, 'utf-8'));
+                            datas.push(data);
+                        }
+                    });
+                    resolve(datas);
+                }
+                catch (err) {
+                    reject(err);
+                }
+            });
+        });
+    }
 }
-exports.default = database;
-function getAllDatabases() {
-}
-exports.getAllDatabases = getAllDatabases;
+exports.default = Database;
