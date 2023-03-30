@@ -99,9 +99,11 @@ class database {
             return new Promise((resolve, reject) => {
                 try {
                     const tablePath = path_1.default.join(this._databasePath, table);
-                    const itemPath = path_1.default.join(tablePath, `${item.id}.json`);
                     const tableConfig = (0, configsHandlers_1.getConfig)(tablePath, 'table');
+                    if (!tableConfig)
+                        throw new Error('Table does not exist');
                     item.id = tableConfig.lastElementId++;
+                    const itemPath = path_1.default.join(tablePath, `${item.id}.json`);
                     fs_1.default.writeFileSync(itemPath, JSON.stringify(item));
                     (0, configsHandlers_1.createOrEditConfig)(tablePath, tableConfig);
                     resolve(item);

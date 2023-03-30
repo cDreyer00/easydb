@@ -92,10 +92,13 @@ export default class database {
         return new Promise((resolve, reject) => {
             try {
                 const tablePath = path.join(this._databasePath, table);
-                const itemPath = path.join(tablePath, `${item.id}.json`);
                 const tableConfig = getConfig(tablePath, 'table') as tableConfig;
-                
+
+                if(!tableConfig) throw new Error('Table does not exist');
+
                 item.id = tableConfig.lastElementId++;
+
+                const itemPath = path.join(tablePath, `${item.id}.json`);
                 fs.writeFileSync(itemPath, JSON.stringify(item));
                 createOrEditConfig(tablePath, tableConfig);
 

@@ -1,4 +1,13 @@
 import database from "./handlers/databaseHandler";
 
 const db = new database("eshop", ['categories', 'products']);
-const db2 = new database("game", ['players', 'weapons', 'maps', 'enemies']);
+
+const item1 = {
+    name: 'shirts',
+    description: 'shirts from all sizes and colors'
+}
+
+db.insert('categories', { name: 'test' })
+.then((res) => {
+    console.log(res);
+})
