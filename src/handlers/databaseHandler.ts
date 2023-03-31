@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { databaseConfig, tableConfig, item, databasesEntryConfig, createOrEditConfig, getConfig } from './configsHandlers';
+import { databaseConfig, tableConfig, item, databasesEntryConfig, createOrEditConfig, getConfig } from './configsHandler';
+import { createItem } from './filesHandler';
 
 const DATABASES_ENTRY_PATH = path.join(process.cwd(), 'databases');
 
@@ -12,7 +13,7 @@ export default class Database<T> {
     _tablesDict: tablesDictType<T> = {}
 
     /**
-     * Creates a new database
+     * Creates or connects with a database 
      * @param name Name of the database
      * @param tables Tables to be created in the database
      */
@@ -62,6 +63,7 @@ export default class Database<T> {
                 }
             })
             this.tables = config.tables;
+
             createOrEditConfig(this._databasePath, config);
         } catch (err) {
             console.log(err);
@@ -94,21 +96,34 @@ export default class Database<T> {
         })
     }
 
+    // async insert(table: string, item: item) {
+    //     return new Promise((resolve, reject) => {
+    //         try {
+    //             const tablePath = path.join(this._databasePath, table);
+    //             const tableConfig = getConfig(tablePath, 'table') as tableConfig;
+    //             if (!tableConfig) throw new Error('Table does not exist');
+
+    //             tableConfig.lastElementId++;
+    //             item.id = tableConfig.lastElementId;
+    //             tableConfig.elemetsId.push(item.id);
+
+    //             const itemPath = path.join(tablePath, `${item.id}.json`);
+    //             fs.writeFileSync(itemPath, JSON.stringify(item));
+    //             createOrEditConfig(tablePath, tableConfig);
+
+    //             resolve(item);
+    //         } catch (err) {
+    //             reject(err);
+    //         }
+    //     })
+    // }
+
     async insert(table: string, item: item) {
         return new Promise((resolve, reject) => {
             try {
-                const tablePath = path.join(this._databasePath, table);
-                const tableConfig = getConfig(tablePath, 'table') as tableConfig;
-                if (!tableConfig) throw new Error('Table does not exist');
-                
-                tableConfig.lastElementId++;
-                item.id = tableConfig.lastElementId;
-                tableConfig.elemetsId.push(item.id);
-
-                const itemPath = path.join(tablePath, `${item.id}.json`);
-                fs.writeFileSync(itemPath, JSON.stringify(item));
-                createOrEditConfig(tablePath, tableConfig);
-
+                item.id = 0
+                const filePath = path.join(this._databasePath, table, `${item.id}.json`);
+                createItem(item, filePath);
                 resolve(item);
             } catch (err) {
                 reject(err);
@@ -145,10 +160,6 @@ export default class Database<T> {
                 reject(e)
             }
         })
-    }
-
-    setTablesDict() {
-        // 
     }
 }
 

@@ -14,11 +14,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const configsHandlers_1 = require("./configsHandlers");
+const configsHandler_1 = require("./configsHandler");
+const filesHandler_1 = require("./filesHandler");
 const DATABASES_ENTRY_PATH = path_1.default.join(process.cwd(), 'databases');
 class Database {
     /**
-     * Creates a new database
+     * Creates or connects with a database
      * @param name Name of the database
      * @param tables Tables to be created in the database
      */
@@ -43,12 +44,12 @@ class Database {
             if (!fs_1.default.existsSync(DATABASES_ENTRY_PATH)) {
                 fs_1.default.mkdirSync(DATABASES_ENTRY_PATH);
             }
-            let config = (0, configsHandlers_1.getConfig)(DATABASES_ENTRY_PATH, 'entry');
+            let config = (0, configsHandler_1.getConfig)(DATABASES_ENTRY_PATH, 'entry');
             if (!config)
                 config = { databases: [], type: 'entry' };
             if (!config.databases.includes(this.name))
                 config.databases.push(this.name);
-            (0, configsHandlers_1.createOrEditConfig)(DATABASES_ENTRY_PATH, config);
+            (0, configsHandler_1.createOrEditConfig)(DATABASES_ENTRY_PATH, config);
         }
         catch (err) {
             throw err;
@@ -59,7 +60,7 @@ class Database {
             if (!fs_1.default.existsSync(this._databasePath)) {
                 fs_1.default.mkdirSync(this._databasePath);
             }
-            let config = (0, configsHandlers_1.getConfig)(this._databasePath, 'database');
+            let config = (0, configsHandler_1.getConfig)(this._databasePath, 'database');
             if (!config)
                 config = { name: this.name, tables: [], type: 'database' };
             this.tables.map((t) => {
@@ -68,7 +69,7 @@ class Database {
                 }
             });
             this.tables = config.tables;
-            (0, configsHandlers_1.createOrEditConfig)(this._databasePath, config);
+            (0, configsHandler_1.createOrEditConfig)(this._databasePath, config);
         }
         catch (err) {
             console.log(err);
@@ -82,17 +83,17 @@ class Database {
                     const tablePath = path_1.default.join(this._databasePath, tableName);
                     if (!fs_1.default.existsSync(tablePath))
                         fs_1.default.mkdirSync(tablePath);
-                    let config = (0, configsHandlers_1.getConfig)(tablePath, 'table');
+                    let config = (0, configsHandler_1.getConfig)(tablePath, 'table');
                     if (!config)
                         config = { name: tableName, lastElementId: 0, type: 'table', elemetsId: [] };
-                    (0, configsHandlers_1.createOrEditConfig)(tablePath, config);
+                    (0, configsHandler_1.createOrEditConfig)(tablePath, config);
                     // update database tables
-                    let dbConfig = (0, configsHandlers_1.getConfig)(this._databasePath, 'database');
+                    let dbConfig = (0, configsHandler_1.getConfig)(this._databasePath, 'database');
                     if (!dbConfig)
                         throw new Error(`❌ configuration json file for ${this.name} database is missing or corrupted`);
                     if (!dbConfig.tables.includes(tableName))
                         dbConfig.tables.push(tableName);
-                    (0, configsHandlers_1.createOrEditConfig)(this._databasePath, dbConfig);
+                    (0, configsHandler_1.createOrEditConfig)(this._databasePath, dbConfig);
                     resolve();
                 }
                 catch (err) {
@@ -101,20 +102,31 @@ class Database {
             });
         });
     }
+    // async insert(table: string, item: item) {
+    //     return new Promise((resolve, reject) => {
+    //         try {
+    //             const tablePath = path.join(this._databasePath, table);
+    //             const tableConfig = getConfig(tablePath, 'table') as tableConfig;
+    //             if (!tableConfig) throw new Error('Table does not exist');
+    //             tableConfig.lastElementId++;
+    //             item.id = tableConfig.lastElementId;
+    //             tableConfig.elemetsId.push(item.id);
+    //             const itemPath = path.join(tablePath, `${item.id}.json`);
+    //             fs.writeFileSync(itemPath, JSON.stringify(item));
+    //             createOrEditConfig(tablePath, tableConfig);
+    //             resolve(item);
+    //         } catch (err) {
+    //             reject(err);
+    //         }
+    //     })
+    // }
     insert(table, item) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 try {
-                    const tablePath = path_1.default.join(this._databasePath, table);
-                    const tableConfig = (0, configsHandlers_1.getConfig)(tablePath, 'table');
-                    if (!tableConfig)
-                        throw new Error('Table does not exist');
-                    tableConfig.lastElementId++;
-                    item.id = tableConfig.lastElementId;
-                    tableConfig.elemetsId.push(item.id);
-                    const itemPath = path_1.default.join(tablePath, `${item.id}.json`);
-                    fs_1.default.writeFileSync(itemPath, JSON.stringify(item));
-                    (0, configsHandlers_1.createOrEditConfig)(tablePath, tableConfig);
+                    item.id = 0;
+                    const filePath = path_1.default.join(this._databasePath, table, `${item.id}.json`);
+                    (0, filesHandler_1.createItem)(item, filePath);
                     resolve(item);
                 }
                 catch (err) {
@@ -154,9 +166,6 @@ class Database {
                 }
             });
         });
-    }
-    setTablesDict() {
-        // 
     }
 }
 exports.default = Database;
