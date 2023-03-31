@@ -23,6 +23,7 @@ class Database {
      * @param tables Tables to be created in the database
      */
     constructor(name, tables = []) {
+        this._tablesDict = {};
         this.name = name;
         this._databasePath = path_1.default.join(DATABASES_ENTRY_PATH, name);
         this.tables = tables;
@@ -83,8 +84,15 @@ class Database {
                         fs_1.default.mkdirSync(tablePath);
                     let config = (0, configsHandlers_1.getConfig)(tablePath, 'table');
                     if (!config)
-                        config = { name: tableName, lastElementId: 0, type: 'table' };
+                        config = { name: tableName, lastElementId: 0, type: 'table', elemetsId: [] };
                     (0, configsHandlers_1.createOrEditConfig)(tablePath, config);
+                    // update database tables
+                    let dbConfig = (0, configsHandlers_1.getConfig)(this._databasePath, 'database');
+                    if (!dbConfig)
+                        throw new Error(`❌ configuration json file for ${this.name} database is missing or corrupted`);
+                    if (!dbConfig.tables.includes(tableName))
+                        dbConfig.tables.push(tableName);
+                    (0, configsHandlers_1.createOrEditConfig)(this._databasePath, dbConfig);
                     resolve();
                 }
                 catch (err) {
@@ -101,7 +109,9 @@ class Database {
                     const tableConfig = (0, configsHandlers_1.getConfig)(tablePath, 'table');
                     if (!tableConfig)
                         throw new Error('Table does not exist');
-                    item.id = tableConfig.lastElementId++;
+                    tableConfig.lastElementId++;
+                    item.id = tableConfig.lastElementId;
+                    tableConfig.elemetsId.push(item.id);
                     const itemPath = path_1.default.join(tablePath, `${item.id}.json`);
                     fs_1.default.writeFileSync(itemPath, JSON.stringify(item));
                     (0, configsHandlers_1.createOrEditConfig)(tablePath, tableConfig);
@@ -113,7 +123,7 @@ class Database {
             });
         });
     }
-    get(table, ids) {
+    getAll(table) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 try {
@@ -133,6 +143,20 @@ class Database {
                 }
             });
         });
+    }
+    update(table, id, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                try {
+                }
+                catch (e) {
+                    reject(e);
+                }
+            });
+        });
+    }
+    setTablesDict() {
+        // 
     }
 }
 exports.default = Database;

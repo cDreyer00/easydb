@@ -9,6 +9,7 @@ export default class Database<T> {
     tables: string[];
 
     _databasePath: string;
+    _tablesDict: tablesDictType<T> = {}
 
     /**
      * Creates a new database
@@ -61,7 +62,6 @@ export default class Database<T> {
                 }
             })
             this.tables = config.tables;
-
             createOrEditConfig(this._databasePath, config);
         } catch (err) {
             console.log(err);
@@ -78,8 +78,14 @@ export default class Database<T> {
                     fs.mkdirSync(tablePath);
 
                 let config = getConfig(tablePath, 'table') as tableConfig;
-                if (!config) config = { name: tableName, lastElementId: 0, type: 'table' };
+                if (!config) config = { name: tableName, lastElementId: 0, type: 'table', elemetsId: [] };
                 createOrEditConfig(tablePath, config);
+
+                // update database tables
+                let dbConfig = getConfig(this._databasePath, 'database') as databaseConfig
+                if (!dbConfig) throw new Error(`❌ configuration json file for ${this.name} database is missing or corrupted`)
+                if (!dbConfig.tables.includes(tableName)) dbConfig.tables.push(tableName)
+                createOrEditConfig(this._databasePath, dbConfig)
 
                 resolve();
             } catch (err) {
@@ -93,10 +99,11 @@ export default class Database<T> {
             try {
                 const tablePath = path.join(this._databasePath, table);
                 const tableConfig = getConfig(tablePath, 'table') as tableConfig;
-
                 if (!tableConfig) throw new Error('Table does not exist');
-
-                item.id = tableConfig.lastElementId++;
+                
+                tableConfig.lastElementId++;
+                item.id = tableConfig.lastElementId;
+                tableConfig.elemetsId.push(item.id);
 
                 const itemPath = path.join(tablePath, `${item.id}.json`);
                 fs.writeFileSync(itemPath, JSON.stringify(item));
@@ -109,7 +116,7 @@ export default class Database<T> {
         })
     }
 
-    async get(table: string, ids: number[]): Promise<T[]> {
+    async getAll(table: string): Promise<T[]> {
         return new Promise((resolve, reject) => {
             try {
                 const tablePath = path.join(this._databasePath, table);
@@ -118,12 +125,10 @@ export default class Database<T> {
                 const datas: T[] = [];
                 filesNames.map(fn => {
                     if (fn != 'config.json') {
-                        const data = JSON.parse(fs.readFileSync(`${tablePath}/${fn}`, 'utf-8')) as T; 
+                        const data = JSON.parse(fs.readFileSync(`${tablePath}/${fn}`, 'utf-8')) as T;
                         datas.push(data)
                     }
                 })
-
-
 
                 resolve(datas as T[]);
             } catch (err) {
@@ -131,4 +136,28 @@ export default class Database<T> {
             }
         })
     }
+
+    async update<T>(table: string, id: number, data: T): Promise<void> {
+        return new Promise((resolve, reject) => {
+            try {
+
+            } catch (e) {
+                reject(e)
+            }
+        })
+    }
+
+    setTablesDict() {
+        // 
+    }
+}
+
+
+type tablesDictType<T> = {
+    [key: string]: elementDictType<T>[]
+}
+
+
+type elementDictType<T> = {
+    [key: number]: T
 }

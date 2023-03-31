@@ -14,6 +14,7 @@ export type databaseConfig = {
 
 export type tableConfig = {
     lastElementId: number;
+    elemetsId: number[];
     name: string;
     type: 'table';
 }
