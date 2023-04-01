@@ -1,16 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-// import { databaseConfig, tableConfig, item, databasesEntryConfig, createOrEditConfig, getConfig } from '../config/config';
-// import { createItem } from '../file-managment/fileManagment';
+import ConfigsManager, { item, getConfig, tableConfig } from '../config/config';
+import { reduceEachTrailingCommentRange } from 'typescript';
 
 const DATABASES_ENTRY_PATH = path.join(process.cwd(), 'databases');
 
-export default class Database<T> {
+export default class Database {
     name: string;
     tables: string[];
 
     private databasePath: string;
-    private tablesDict: tablesDictType<T> = {}
+
+    configsManager: ConfigsManager;
 
     /**
      * Creates or connects with a database 
@@ -31,14 +32,14 @@ export default class Database<T> {
                 throw err;
             }
         })
+
+        this.configsManager = new ConfigsManager(DATABASES_ENTRY_PATH, name, tables);
     }
 
     private databasesEntryCheck() {
         try {
-            if (!fs.existsSync(DATABASES_ENTRY_PATH)) {
-                fs.mkdirSync(DATABASES_ENTRY_PATH);
-            }
-
+            if (fs.existsSync(DATABASES_ENTRY_PATH)) return;
+            fs.mkdirSync(DATABASES_ENTRY_PATH);
         } catch (err) {
             throw err;
         }
@@ -46,7 +47,8 @@ export default class Database<T> {
 
     private databaseCheck() {
         try {
-
+            if (fs.existsSync(this.databasePath)) return;
+            fs.mkdirSync(this.databasePath);
         } catch (err) {
             console.log(err);
             throw err;
@@ -57,42 +59,23 @@ export default class Database<T> {
         return new Promise((resolve, reject) => {
             try {
                 const tablePath = path.join(this.databasePath, tableName);
-
-                if (!fs.existsSync(tablePath))
-                    fs.mkdirSync(tablePath);
-
+                if (fs.existsSync(tablePath)) return;
+                fs.mkdirSync(tablePath);
+                this.configsManager?.onTableCreated(tableName);
             } catch (err) {
                 reject(err);
             }
         })
     }
 
-    // async insert(table: string, item: item) {
-    //     return new Promise((resolve, reject) => {
-    //         try {
-    //             const tablePath = path.join(this.databasePath, table);
-    //             const tableConfig = getConfig(tablePath, 'table') as tableConfig;
-    //             if (!tableConfig) throw new Error('Table does not exist');
-
-    //             tableConfig.lastElementId++;
-    //             item.id = tableConfig.lastElementId;
-    //             tableConfig.elemetsId.push(item.id);
-
-    //             const itemPath = path.join(tablePath, `${item.id}.json`);
-    //             fs.writeFileSync(itemPath, JSON.stringify(item));
-    //             createOrEditConfig(tablePath, tableConfig);
-
-    //             resolve(item);
-    //         } catch (err) {
-    //             reject(err);
-    //         }
-    //     })
-    // }
-
-    async insert(table: string, item: {}) {
+    async insert(table: string, item: item) {
         return new Promise((resolve, reject) => {
             try {
-                const filePath = path.join(this.databasePath, table);
+                const tableConfig = this.configsManager.tablesConfigs[table] as tableConfig;
+                item.id = tableConfig.lastElementId + 1;
+                const filePath = path.join(this.databasePath, table, `${item.id}.json`);
+                fs.writeFileSync(filePath, JSON.stringify(item));
+                this.configsManager.onItemCreated(table, item.id);
                 resolve(item);
             } catch (err) {
                 reject(err);
@@ -100,7 +83,7 @@ export default class Database<T> {
         })
     }
 
-    async getAll(table: string): Promise<T[]> {
+    async getAll<T>(table: string): Promise<T[]> {
         return new Promise((resolve, reject) => {
             try {
                 const tablePath = path.join(this.databasePath, table);
