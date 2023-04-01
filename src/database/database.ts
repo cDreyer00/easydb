@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { databaseConfig, tableConfig, item, databasesEntryConfig, createOrEditConfig, getConfig } from './configsHandler';
-import { createItem } from './filesHandler';
+import { databaseConfig, tableConfig, item, databasesEntryConfig, createOrEditConfig, getConfig } from '../config/config';
+import { createItem } from '../file-managment/fileManagment';
 
 const DATABASES_ENTRY_PATH = path.join(process.cwd(), 'databases');
 

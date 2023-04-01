@@ -1,4 +1,4 @@
-import Database from "./handlers/databaseHandler";
+import Database from "./database/database";
 
 const db = new Database('characters', ['players']);
 
