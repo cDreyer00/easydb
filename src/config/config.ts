@@ -60,26 +60,24 @@ export default class ConfigsManager {
         this.configsPaths['database'] = path.join(this.databaseEntryPath, this.database, 'config.json');
 
         this.tables.map(table => {
-            const tableConfigPath = path.join(this.configsPaths['database'], table, 'config.json');
+            const tableConfigPath = path.join(this.databaseEntryPath, this.database, table, 'config.json');
             this.configsPaths[table] = tableConfigPath;
         })
     }
 
     setDatabaseConfig() {
         try {
-            let dbConfig = getConfig(this.database, 'database') as databaseConfig;
+            let dbConfig = getConfig(this.configsPaths['database'], 'database') as databaseConfig;
             if (!dbConfig) {
                 dbConfig = {
                     name: this.database,
                     tables: this.tables,
                     type: 'database'
                 } as databaseConfig;
-                createOrEditConfig(this.database, dbConfig);
+                createOrEditConfig(this.configsPaths['database'], dbConfig);
                 console.log(`✅ Database config created: ${dbConfig.name}`)
             } else console.log(`✅ Database config loaded: ${dbConfig.name}`);
             this.databaseConfig = dbConfig;
-
-            console.log(`✅ Database config loaded: ${this.databaseConfig.name}`);
         } catch (err) {
             let e = err as Error;
             console.log(`❌ Error while loading database config: ${e.message}`)

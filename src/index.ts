@@ -1,16 +1,23 @@
 import Database from "./database/database";
 
-const db = new Database('characters', ['players']);
-
-type character = {
+type Monster = {
     name: string;
-    age: number;
+    health: number;
+    strenght: number;
+    speed: number;
+    skillsIds: number[];
 }
 
-const ch1: character = {
-    name: 'John',
-    age: 22,
+type Skill = {
+    name: string;
+    damage: number;
+    element: Elements;
 }
 
-db.insert('players', ch1)
-    .then(res => console.log(res))
+type Elements = 'fire' | 'water' | 'earth' | 'air';
+
+const db = new Database('Monster_World', ['monsters', 'skills']);
+
+db.getAll('monsters').then((monsters) => {
+    console.log(monsters);
+})

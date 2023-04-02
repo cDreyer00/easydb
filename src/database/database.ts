@@ -74,8 +74,8 @@ export default class Database {
                 const tableConfig = this.configsManager.tablesConfigs[table] as tableConfig;
                 item.id = tableConfig.lastElementId + 1;
                 const filePath = path.join(this.databasePath, table, `${item.id}.json`);
-                fs.writeFileSync(filePath, JSON.stringify(item));
-                this.configsManager.onItemCreated(table, item.id);
+                fs.writeFileSync(filePath, JSON.stringify(item))
+                this.configsManager.onItemCreated(table, item);
                 resolve(item);
             } catch (err) {
                 reject(err);

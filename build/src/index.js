@@ -4,10 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const database_1 = __importDefault(require("./database/database"));
-const db = new database_1.default('characters', ['players']);
-const ch1 = {
-    name: 'John',
-    age: 22,
-};
-db.insert('players', ch1)
-    .then(res => console.log(res));
+const db = new database_1.default('Monster_World', ['monsters', 'skills']);
+db.getAll('monsters').then((monsters) => {
+    console.log(monsters);
+});
