@@ -18,6 +18,8 @@ type Elements = 'fire' | 'water' | 'earth' | 'air';
 
 const db = new Database('Monster_World', ['monsters', 'skills']);
 
-db.getAll('monsters').then((monsters) => {
-    console.log(monsters);
+db.get('skills', [3, 2, 5]).then((monster) => {
+    console.log(monster);
 })
+
+

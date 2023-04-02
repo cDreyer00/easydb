@@ -1,17 +1,24 @@
 import fs from 'fs';
 import path from 'path';
-import ConfigsManager, { item, getConfig, tableConfig } from '../config/config';
-import { reduceEachTrailingCommentRange } from 'typescript';
+import ConfigsManager, { item, getConfig, tableConfig, databaseConfig } from '../config/config';
+
+type TableItemPair = {
+    [key: number]: item;
+}
+
+type DatabaseTablesPair = {
+    [key: string]: TableItemPair;
+}
 
 const DATABASES_ENTRY_PATH = path.join(process.cwd(), 'databases');
 
 export default class Database {
     name: string;
     tables: string[];
+    configsManager: ConfigsManager;
 
     private databasePath: string;
-
-    configsManager: ConfigsManager;
+    private tablesItems: DatabaseTablesPair = {};
 
     /**
      * Creates or connects with a database 
@@ -34,6 +41,27 @@ export default class Database {
         })
 
         this.configsManager = new ConfigsManager(DATABASES_ENTRY_PATH, name, tables);
+        this.setTableItemsPair();
+    }
+
+    private setTableItemsPair() {
+        try {
+            this.tables.forEach(table => {
+                this.tablesItems[table] = {};
+                const tConfig = this.configsManager.tablesConfigs[table] as tableConfig;
+                tConfig.elemetsId.forEach(id => {
+                    const itemPath = path.join(this.databasePath, table, `${id}.json`);
+                    const item = JSON.parse(fs.readFileSync(itemPath, 'utf-8')) as item;
+                    this.tablesItems[table][id] = item;
+                })
+            })
+        }
+        catch (err) {
+            let e = err as Error;
+            console.log(`❌ Error loading tables items: ${e.message}`);
+            throw err;
+        }
+
     }
 
     private databasesEntryCheck() {
@@ -62,20 +90,53 @@ export default class Database {
                 if (fs.existsSync(tablePath)) return;
                 fs.mkdirSync(tablePath);
                 this.configsManager?.onTableCreated(tableName);
+                this.tablesItems[tableName] = {};
+                resolve();
             } catch (err) {
                 reject(err);
             }
         })
     }
 
-    async insert(table: string, item: item) {
+    async deleteTable(tableName: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            try {
+                const tablePath = path.join(this.databasePath, tableName);
+                fs.rmSync(tablePath, { recursive: true, force: true });
+                this.configsManager?.onTableDeleted(tableName);
+                delete this.tablesItems[tableName];
+            } catch (err) {
+                reject(err);
+            }
+        })
+    }
+
+    async insert<T>(table: string, item: item): Promise<T> {
         return new Promise((resolve, reject) => {
             try {
                 const tableConfig = this.configsManager.tablesConfigs[table] as tableConfig;
                 item.id = tableConfig.lastElementId + 1;
+
                 const filePath = path.join(this.databasePath, table, `${item.id}.json`);
                 fs.writeFileSync(filePath, JSON.stringify(item))
                 this.configsManager.onItemCreated(table, item);
+                this.tablesItems[table][item.id] = item;
+                resolve(item as T);
+            } catch (err) {
+                reject(err);
+            }
+        })
+    }
+
+    async delete<T>(table: string, id: number): Promise<T> {
+        return new Promise((resolve, reject) => {
+            try {
+                const filePath = path.join(this.databasePath, table, `${id}.json`);
+                fs.unlinkSync(filePath);
+                this.configsManager.onItemDeleted(table, id);
+
+                const item = this.tablesItems[table][id] as T;
+                delete this.tablesItems[table][id];
                 resolve(item);
             } catch (err) {
                 reject(err);
@@ -86,41 +147,47 @@ export default class Database {
     async getAll<T>(table: string): Promise<T[]> {
         return new Promise((resolve, reject) => {
             try {
-                const tablePath = path.join(this.databasePath, table);
-                const filesNames = fs.readdirSync(tablePath, 'utf-8');
-
-                const datas: T[] = [];
-                filesNames.map(fn => {
-                    if (fn != 'config.json') {
-                        const data = JSON.parse(fs.readFileSync(`${tablePath}/${fn}`, 'utf-8')) as T;
-                        datas.push(data)
-                    }
-                })
-
-                resolve(datas as T[]);
+                const itens = this.tablesItems[table];
+                resolve(itens as T[]);
             } catch (err) {
                 reject(err);
             }
         })
     }
 
-    async update<T>(table: string, id: number, data: T): Promise<void> {
+    async get<T>(table: string, id: number[]): Promise<T[]> {
         return new Promise((resolve, reject) => {
             try {
+                const itens = this.tablesItems[table];
+                const itensArray = Object.values(itens);
+                const itensFiltered = itensArray.filter((item) => id.includes(item.id));
+                resolve(itensFiltered as T[]);
+            } catch (err) {
+                reject(err);
+            }
+        })
+    }
 
+    async getOne<T>(table: string, id: number): Promise<T> {
+        return new Promise((resolve, reject) => {
+            this.get(table, [id]).then((itens) => {
+                resolve(itens[0] as T);
+            }).catch((err) => {
+                reject(err);
+            })
+        })
+    }
+
+    async update<T>(table: string, id: number, data: item): Promise<void> {
+        return new Promise((resolve, reject) => {
+            try {
+                data.id = id;
+                const filePath = path.join(this.databasePath, table, `${id}.json`);
+                this.tablesItems[table][id] = data;
+                fs.writeFileSync(filePath, JSON.stringify(this.tablesItems[table][id]));
             } catch (e) {
                 reject(e)
             }
         })
     }
-}
-
-
-type tablesDictType<T> = {
-    [key: string]: elementDictType<T>[]
-}
-
-
-type elementDictType<T> = {
-    [key: number]: T
 }

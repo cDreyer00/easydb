@@ -23,7 +23,7 @@ export type item = {
     [key: string]: any;
 }
 
-type types = 'database' | 'table' | 'item' | 'entry';
+type Types = 'database' | 'table' | 'item' | 'entry';
 type configs = databaseConfig | tableConfig | item | databasesEntryConfig;
 
 export default class ConfigsManager {
@@ -91,7 +91,7 @@ export default class ConfigsManager {
                 if (!tableConfig) {
                     tableConfig = {
                         name: table,
-                        lastElementId: 0,
+                        lastElementId: -1,
                         elemetsId: [],
                         type: 'table'
                     } as tableConfig;
@@ -129,9 +129,23 @@ export default class ConfigsManager {
         tableConfig.elemetsId.splice(tableConfig.elemetsId.indexOf(itemId), 1);
         createOrEditConfig(this.configsPaths[table], tableConfig);
     }
+
+    getConfig(type: Types, name: string): configs | undefined {
+        switch (type) {
+            case 'database':
+                return this.databaseConfig;
+            case 'table':
+                return this.tablesConfigs[name];
+            case 'item':
+                return undefined;
+            case 'entry':
+                return getConfig(this.databaseEntryPath, 'entry');
+        }
+        return undefined;
+    }
 }
 
-export function getConfig(configPath: string, type: types): configs | undefined {
+export function getConfig(configPath: string, type: Types): configs | undefined {
     if (!fs.existsSync(configPath)) return undefined;
 
     try {
