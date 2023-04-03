@@ -1,8 +1,8 @@
 {
     "name": "@cdreyer/easydb",
-    "version": "0.1.3",
+    "version": "0.1.0",
     "description": "",
-    "main": "./build/src/database/database.js",
+    "main": "./build/src",
     "scripts": {
         "build": "npx tsc",
         "start": "node ./build/src/index.js"
