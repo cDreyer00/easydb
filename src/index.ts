@@ -17,9 +17,19 @@ type Skill = {
 type Elements = 'fire' | 'water' | 'earth' | 'air';
 
 const db = new Database('Monster_World', ['monsters', 'skills']);
+        
+async function run() {
+    const skills = await db.getAll('skills')
+    let skillsArray = skills as any[];
+    console.log(skillsArray)
+    skillsArray.forEach(async skill => {
+        if (skill.name == 'Fireball') {
+            skill.damage = 200;
+            let s = await db.update('skills', skill.id, skill) as any
+        }
+    })
+}
 
-db.get('skills', [3, 2, 5]).then((monster) => {
-    console.log(monster);
-})
-
-
+run()
+    .then(() => {console.log('✅ Done')})
+    .catch(err => {console.log('❌ Error: ' + err)})

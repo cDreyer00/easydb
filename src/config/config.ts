@@ -75,12 +75,10 @@ export default class ConfigsManager {
                     type: 'database'
                 } as databaseConfig;
                 createOrEditConfig(this.configsPaths['database'], dbConfig);
-                console.log(`✅ Database config created: ${dbConfig.name}`)
-            } else console.log(`✅ Database config loaded: ${dbConfig.name}`);
+            }
             this.databaseConfig = dbConfig;
         } catch (err) {
             let e = err as Error;
-            console.log(`❌ Error while loading database config: ${e.message}`)
         }
     }
 
@@ -96,13 +94,11 @@ export default class ConfigsManager {
                         type: 'table'
                     } as tableConfig;
                     createOrEditConfig(this.configsPaths[table], tableConfig);
-                    console.log(`✅ Table config created: ${tableConfig.name}`)
-                } else console.log(`✅ Table config loaded: ${tableConfig.name}`);
+                }
                 this.tablesConfigs[table] = tableConfig;
             })
         } catch (err) {
-            let e = err as Error;
-            console.log(`❌ Error while loading tables configs: ${e.message}`)
+            throw err as Error;
         }
     }
 

@@ -148,19 +148,23 @@ export default class Database {
         return new Promise((resolve, reject) => {
             try {
                 const itens = this.tablesItems[table];
-                resolve(itens as T[]);
+                const itensArray = Object.values(itens);
+                resolve(itensArray as T[]);
             } catch (err) {
                 reject(err);
             }
         })
     }
 
-    async get<T>(table: string, id: number[]): Promise<T[]> {
+    async get<T>(table: string, ids: number[]): Promise<T[]> {
         return new Promise((resolve, reject) => {
             try {
+                //console log if id is an array
+                if(!Array.isArray(ids)) throw new Error(`❌ Error: ids must be an array. To get one item use getOne instead.`);
+
                 const itens = this.tablesItems[table];
                 const itensArray = Object.values(itens);
-                const itensFiltered = itensArray.filter((item) => id.includes(item.id));
+                const itensFiltered = itensArray.filter((item) => ids.includes(item.id));
                 resolve(itensFiltered as T[]);
             } catch (err) {
                 reject(err);
@@ -178,13 +182,14 @@ export default class Database {
         })
     }
 
-    async update<T>(table: string, id: number, data: item): Promise<void> {
+    async update<T>(table: string, id: number, data: item): Promise<T> {
         return new Promise((resolve, reject) => {
             try {
                 data.id = id;
                 const filePath = path.join(this.databasePath, table, `${id}.json`);
                 this.tablesItems[table][id] = data;
                 fs.writeFileSync(filePath, JSON.stringify(this.tablesItems[table][id]));
+                resolve(data as T)
             } catch (e) {
                 reject(e)
             }
