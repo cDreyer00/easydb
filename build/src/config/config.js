@@ -36,6 +36,7 @@ class ConfigsManager {
                     type: 'database'
                 };
             }
+            dbConfig.tables = dbConfig.tables.filter(table => this.tables.includes(table));
             this.tables.forEach(table => {
                 if (!dbConfig.tables.includes(table)) {
                     dbConfig.tables.push(table);
