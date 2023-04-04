@@ -160,7 +160,7 @@ export default class Database {
         return new Promise((resolve, reject) => {
             try {
                 //console log if id is an array
-                if(!Array.isArray(ids)) throw new Error(`❌ Error: ids must be an array. To get one item use getOne instead.`);
+                if (!Array.isArray(ids)) throw new Error(`❌ Error: ids must be an array. To get one item use getOne instead.`);
 
                 const itens = this.tablesItems[table];
                 const itensArray = Object.values(itens);

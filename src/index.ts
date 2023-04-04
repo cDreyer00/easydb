@@ -1,2 +1,2 @@
 import Database from "./database/database";
-export default Database;
+module.exports = Database;

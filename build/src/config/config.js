@@ -35,9 +35,14 @@ class ConfigsManager {
                     tables: this.tables,
                     type: 'database'
                 };
-                createOrEditConfig(this.configsPaths['database'], dbConfig);
             }
+            this.tables.forEach(table => {
+                if (!dbConfig.tables.includes(table)) {
+                    dbConfig.tables.push(table);
+                }
+            });
             this.databaseConfig = dbConfig;
+            createOrEditConfig(this.configsPaths['database'], dbConfig);
         }
         catch (err) {
             let e = err;
@@ -66,6 +71,7 @@ class ConfigsManager {
     onTableCreated(table) {
         this.tables.push(table);
         this.setPaths();
+        this.setDatabaseConfig();
         this.setTablesConfigs();
     }
     onTableDeleted(table) {
