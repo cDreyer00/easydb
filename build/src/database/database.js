@@ -107,6 +107,7 @@ class Database {
                     fs_1.default.rmSync(tablePath, { recursive: true, force: true });
                     (_a = this.configsManager) === null || _a === void 0 ? void 0 : _a.onTableDeleted(tableName);
                     delete this.tablesItems[tableName];
+                    resolve();
                 }
                 catch (err) {
                     reject(err);
@@ -117,12 +118,13 @@ class Database {
     insert(table, item) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
+                var _a;
                 try {
                     const tableConfig = this.configsManager.tablesConfigs[table];
                     item.id = tableConfig.lastElementId + 1;
                     const filePath = path_1.default.join(this.databasePath, table, `${item.id}.json`);
                     fs_1.default.writeFileSync(filePath, JSON.stringify(item));
-                    this.configsManager.onItemCreated(table, item);
+                    (_a = this.configsManager) === null || _a === void 0 ? void 0 : _a.onItemCreated(table, item);
                     this.tablesItems[table][item.id] = item;
                     resolve(item);
                 }
@@ -135,10 +137,11 @@ class Database {
     delete(table, id) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
+                var _a;
                 try {
                     const filePath = path_1.default.join(this.databasePath, table, `${id}.json`);
                     fs_1.default.unlinkSync(filePath);
-                    this.configsManager.onItemDeleted(table, id);
+                    (_a = this.configsManager) === null || _a === void 0 ? void 0 : _a.onItemDeleted(table, id);
                     const item = this.tablesItems[table][id];
                     delete this.tablesItems[table][id];
                     resolve(item);

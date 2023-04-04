@@ -105,6 +105,7 @@ export default class Database {
                 fs.rmSync(tablePath, { recursive: true, force: true });
                 this.configsManager?.onTableDeleted(tableName);
                 delete this.tablesItems[tableName];
+                resolve();
             } catch (err) {
                 reject(err);
             }
@@ -119,7 +120,7 @@ export default class Database {
 
                 const filePath = path.join(this.databasePath, table, `${item.id}.json`);
                 fs.writeFileSync(filePath, JSON.stringify(item))
-                this.configsManager.onItemCreated(table, item);
+                this.configsManager?.onItemCreated(table, item);
                 this.tablesItems[table][item.id] = item;
                 resolve(item as T);
             } catch (err) {
@@ -133,7 +134,7 @@ export default class Database {
             try {
                 const filePath = path.join(this.databasePath, table, `${id}.json`);
                 fs.unlinkSync(filePath);
-                this.configsManager.onItemDeleted(table, id);
+                this.configsManager?.onItemDeleted(table, id);
 
                 const item = this.tablesItems[table][id] as T;
                 delete this.tablesItems[table][id];

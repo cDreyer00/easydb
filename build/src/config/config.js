@@ -78,6 +78,8 @@ class ConfigsManager {
     onTableDeleted(table) {
         this.tables.splice(this.tables.indexOf(table), 1);
         this.setPaths();
+        this.setDatabaseConfig();
+        this.setTablesConfigs();
     }
     onItemCreated(table, item) {
         const tableConfig = this.tablesConfigs[table];

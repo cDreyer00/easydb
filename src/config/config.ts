@@ -121,6 +121,8 @@ export default class ConfigsManager {
     onTableDeleted(table: string) {
         this.tables.splice(this.tables.indexOf(table), 1);
         this.setPaths();
+        this.setDatabaseConfig();
+        this.setTablesConfigs();
     }
 
     onItemCreated(table: string, item: item) {
