@@ -7,15 +7,15 @@ exports.createOrEditConfig = exports.getConfig = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 class ConfigsManager {
-    constructor(databaseEntryPath, databasePath, tablesPaths) {
+    constructor(databaseEntryPath, dbName, tables) {
         this.databaseEntryPath = databaseEntryPath;
-        this.database = databasePath;
-        this.tables = tablesPaths;
+        this.database = dbName;
+        this.tables = tables;
         this.configsPaths = {};
         this.databaseConfig = {};
         this.tablesConfigs = {};
         this.setPaths();
-        this.setDatabaseConfig();
+        this.setDatabaseConfig(true);
         this.setTablesConfigs();
     }
     setPaths() {
@@ -26,7 +26,7 @@ class ConfigsManager {
             this.configsPaths[table] = tableConfigPath;
         });
     }
-    setDatabaseConfig() {
+    setDatabaseConfig(initializing = false) {
         try {
             let dbConfig = getConfig(this.configsPaths['database'], 'database');
             if (!dbConfig) {
@@ -36,14 +36,18 @@ class ConfigsManager {
                     type: 'database'
                 };
             }
-            dbConfig.tables = dbConfig.tables.filter(table => this.tables.includes(table));
+            if (!initializing) {
+                dbConfig.tables = dbConfig.tables.filter(table => this.tables.includes(table));
+            }
             this.tables.forEach(table => {
                 if (!dbConfig.tables.includes(table)) {
                     dbConfig.tables.push(table);
                 }
             });
             this.databaseConfig = dbConfig;
+            this.tables = dbConfig.tables;
             createOrEditConfig(this.configsPaths['database'], dbConfig);
+            this.setPaths();
         }
         catch (err) {
             let e = err;
@@ -51,7 +55,12 @@ class ConfigsManager {
     }
     setTablesConfigs() {
         try {
-            this.tables.map(table => {
+            let temp = this.tables.toString().split(',');
+            temp.map(table => {
+                if (!fs_1.default.existsSync(path_1.default.join(this.databaseEntryPath, this.database, table))) {
+                    this.tables.splice(this.tables.indexOf(table), 1);
+                    return;
+                }
                 let tableConfig = getConfig(this.configsPaths[table], 'table');
                 if (!tableConfig) {
                     tableConfig = {
@@ -76,6 +85,9 @@ class ConfigsManager {
         this.setTablesConfigs();
     }
     onTableDeleted(table) {
+        let index = this.tables.indexOf(table);
+        if (index < 0)
+            return;
         this.tables.splice(this.tables.indexOf(table), 1);
         this.setPaths();
         this.setDatabaseConfig();

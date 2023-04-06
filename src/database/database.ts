@@ -41,6 +41,7 @@ export default class Database {
         })
 
         this.configsManager = new ConfigsManager(DATABASES_ENTRY_PATH, name, tables);
+        this.tables = this.configsManager.databaseConfig.tables;
         this.setTableItemsPair();
     }
 
@@ -58,7 +59,6 @@ export default class Database {
         }
         catch (err) {
             let e = err as Error;
-            console.log(`❌ Error loading tables items: ${e.message}`);
             throw err;
         }
 
@@ -78,7 +78,6 @@ export default class Database {
             if (fs.existsSync(this.databasePath)) return;
             fs.mkdirSync(this.databasePath);
         } catch (err) {
-            console.log(err);
             throw err;
         }
     }
@@ -91,6 +90,7 @@ export default class Database {
                 fs.mkdirSync(tablePath);
                 this.configsManager?.onTableCreated(tableName);
                 this.tablesItems[tableName] = {};
+                if(!this.tables.includes(tableName)) this.tables.push(tableName);
                 resolve();
             } catch (err) {
                 reject(err);
@@ -107,6 +107,7 @@ export default class Database {
                 delete this.tablesItems[tableName];
                 resolve();
             } catch (err) {
+                console.log('error deleting')
                 reject(err);
             }
         })
