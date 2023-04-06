@@ -1,6 +1,6 @@
 {
     "name": "@cdreyer/easydb",
-    "version": "0.1.0A",
+    "version": "0.1.1",
     "description": "",
     "main": "./build/src",
     "scripts": {
