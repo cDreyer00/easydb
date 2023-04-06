@@ -97,14 +97,14 @@ export default class ConfigsManager {
 
     setTablesConfigs() {
         try {
-            let temp = this.tables.toString().split(',');
+            let temp = this.tables.length > 0 ? this.tables.toString().split(',') : [];
             temp.map(table => {
                 if (!fs.existsSync(path.join(this.databaseEntryPath, this.database, table))) {
                     this.tables.splice(this.tables.indexOf(table), 1);
                     return;
                 }
                 let tableConfig = getConfig(this.configsPaths[table], 'table') as tableConfig;
-                
+
                 if (!tableConfig) {
                     tableConfig = {
                         name: table,
@@ -114,7 +114,7 @@ export default class ConfigsManager {
                     } as tableConfig;
                     createOrEditConfig(this.configsPaths[table], tableConfig);
                 }
-                
+
                 this.tablesConfigs[table] = tableConfig;
             })
         } catch (err) {
@@ -131,7 +131,7 @@ export default class ConfigsManager {
 
     onTableDeleted(table: string) {
         let index = this.tables.indexOf(table);
-        if(index < 0) return;
+        if (index < 0) return;
 
         this.tables.splice(this.tables.indexOf(table), 1);
         this.setPaths();

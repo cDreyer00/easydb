@@ -55,7 +55,7 @@ class ConfigsManager {
     }
     setTablesConfigs() {
         try {
-            let temp = this.tables.toString().split(',');
+            let temp = this.tables.length > 0 ? this.tables.toString().split(',') : [];
             temp.map(table => {
                 if (!fs_1.default.existsSync(path_1.default.join(this.databaseEntryPath, this.database, table))) {
                     this.tables.splice(this.tables.indexOf(table), 1);
