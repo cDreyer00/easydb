@@ -85,7 +85,6 @@ export default class Database {
     async createTable(tableName: string): Promise<void> {
         return new Promise((resolve, reject) => {
             try {
-                console.log('creating table')
                 const tablePath = path.join(this.databasePath, tableName);
                 if (fs.existsSync(tablePath)) return;
                 fs.mkdirSync(tablePath);

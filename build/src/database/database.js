@@ -83,7 +83,6 @@ class Database {
             return new Promise((resolve, reject) => {
                 var _a;
                 try {
-                    console.log('creating table');
                     const tablePath = path_1.default.join(this.databasePath, tableName);
                     if (fs_1.default.existsSync(tablePath))
                         return;
