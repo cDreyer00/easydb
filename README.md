@@ -7,7 +7,8 @@ npm intall @cdreyer/easydb
 ```
 
 ### Description
-easydb is a simple database that uses folders and json files to store data. It creates a main entry folder at the current working directory and creates a subfolder for each table. Items added to a table are stored as json files in the table's subfolder. Easydb is designed to be a simple and fast way to setup a database to store small data before you decide to use a more complex database solution.
+easydb is a simple database that uses folders and json files to store data. It creates a main entry folder at the current working directory and create subfolders for databases and tables. Items added to a table are stored as json files in the table's subfolder.
+Easydb is designed to be a simple and fast way to setup a database to store small data before you decide to use a more complex database solution.
 
 ### Usage
 ```js
